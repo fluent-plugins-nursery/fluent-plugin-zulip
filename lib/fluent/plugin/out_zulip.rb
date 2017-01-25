@@ -36,8 +36,11 @@ module Fluent
       config_param :stream_name, :string, required: false, default: nil
       desc "User names (email address) of the recipients for private message"
       config_param :recipients, :array, default: nil
+      desc "Topic subject"
       config_param :subject, :string, default: nil
+      desc "Topic subject from record"
       config_param :subject_key, :string, default: nil
+      desc "Content from record"
       config_param :content_key, :string, default: nil
 
       def configure(conf)
