@@ -65,12 +65,12 @@ module Fluent
           raise Fluent::ConfigError, "subject max length is #{ZULIP_SUBJECT_MAX_SIZE}"
         end
 
-        @api_endpoint = URI.parse(@api_endpoint)
+        @api_endpoint_uri = URI.parse(@api_endpoint)
       end
 
       def process(tag, es)
-        http = Net::HTTP.new(@api_endpoint.host, @api_endpoint.port)
-        http.use_ssl = @api_endpoint.scheme == "https"
+        http = Net::HTTP.new(@api_endpoint_uri.host, @api_endpoint_uri.port)
+        http.use_ssl = @api_endpoint_uri.scheme == "https"
         http.start
         es.each do |time, record|
           request = build_request(tag, time, record)
@@ -81,7 +81,7 @@ module Fluent
       end
 
       def build_request(tag, time, record)
-        request = Net::HTTP::Post.new(@api_endpoint.path)
+        request = Net::HTTP::Post.new(@api_endpoint_uri.path)
         request.basic_auth(@bot_email_address, @bot_api_key)
         request["Connection"] = "Keep-Alive"
         params = {
