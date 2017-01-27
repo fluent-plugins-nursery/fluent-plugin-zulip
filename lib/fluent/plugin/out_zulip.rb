@@ -25,34 +25,30 @@ module Fluent
       ZULIP_CONTENT_MAX_SIZE = 10000
 
       desc "API endpoint"
-      config_param :api_endpoint, :string, required: true
+      config_param :api_endpoint, :string
       desc "Bot email address"
-      config_param :bot_email_address, :string, required: true
+      config_param :bot_email_address, :string
       desc "Bot API key"
-      config_param :bot_api_key, :string, required: true, secret: true
+      config_param :bot_api_key, :string, secret: true
       desc "Send message type"
       config_param :message_type, :enum, list: [:private, :stream], default: :stream
       desc "Target stream name"
-      config_param :stream_name, :string, required: false, default: nil
+      config_param :stream_name, :string, default: "social"
       desc "User names (email address) of the recipients for private message"
-      config_param :recipients, :array, default: nil
+      config_param :recipients, :array, default: []
       desc "Topic subject"
       config_param :subject, :string, default: nil
       desc "Topic subject from record"
       config_param :subject_key, :string, default: nil
       desc "Content from record"
-      config_param :content_key, :string, default: nil
+      config_param :content_key, :string, default: "message"
 
       def configure(conf)
         super
 
-        if @stream_name && @recipients
-          raise Fluent::ConfigError, "stream_name and recipients are exclusive with each other"
-        end
-
         case @message_type
         when :private
-          raise Fluent::ConfigError, "recipients is required when private message" unless @recipients
+          raise Fluent::ConfigError, "recipients are required when private message" if @recipients.empty?
         when :stream
           raise Fluent::ConfigError, "stream_name is required when stream message" unless @stream_name
         end
