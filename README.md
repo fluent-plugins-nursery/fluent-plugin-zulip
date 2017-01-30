@@ -4,20 +4,34 @@
 
 [Zulip](https://zulip.org/) is a powerful open source group chat.
 
+## Installation
+
+### RubyGems
+
+```
+$ gem install fluent-plugin-zulip
+```
+
+### Bundler
+
+Add following line to your Gemfile:
+
+```
+gem "fluent-plugin-zulip"
+```
+
+And then execute:
+
+```
+$ bundle
+```
+
 ## Configuration
 
-## Plugin helpers
-
-* retry_state
-* thread
+* See also: Fluent::Plugin::Output
 
 ## Fluent::Plugin::ZulipOutput
 
-* **@log_level** (string) (optional): Allows the user to set different levels of logging for each plugin.
-  * Alias: log_level
-* **time_as_integer** (bool) (optional): 
-* **slow_flush_log_threshold** (float) (optional): The threshold to show slow flush logs
-  * Default value: `20.0`.
 * **api_endpoint** (string) (required): API endpoint
 * **bot_email_address** (string) (required): Bot email address
 * **bot_api_key** (string) (required): Bot API key
@@ -25,17 +39,13 @@
   * Available values: private, stream
   * Default value: `stream`.
 * **stream_name** (string) (optional): Target stream name
+  * Default value: `social`.
 * **recipients** (array) (optional): User names (email address) of the recipients for private message
+  * Default value: `[]`.
 * **subject** (string) (optional): Topic subject
 * **subject_key** (string) (optional): Topic subject from record
 * **content_key** (string) (optional): Content from record
-
-### \<secondary\> section (optional) (single)
-
-* **@type** (string) (optional): 
-  * Alias: type
-* **buffer** () (optional): 
-* **secondary** () (optional): 
+  * Default value: `message`.
 
 ## Copyright
 
