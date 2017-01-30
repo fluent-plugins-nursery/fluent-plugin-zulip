@@ -59,4 +59,55 @@ class ZulipOutputTest < Test::Unit::TestCase
       end
     end
   end
+
+  sub_test_case "process" do
+    test "simple" do
+      d = create_driver(CONF)
+      record = { message: "This is test message" }
+      headers = {
+        "Connection" => "Keep-Alive",
+        "Accept" => "*/*",
+        "Accept-Encoding" => "gzip;q=1.0,deflate;q=0.6,identity;q=0.3",
+        "Content-Type" => "application/x-www-form-urlencoded",
+        "User-Agent" => "Ruby"
+      }
+      stub_request(:post, "https://zulip.example.com/api/v1/messages")
+        .with(basic_auth: ["example-bot@example.com", "very-secret-value"],
+              headers: headers,
+              body: "type=stream;content;to=social;subject")
+        .to_return(headers: {},
+                   body: { message: "", result: "success", id: 1234 }.to_json)
+      d.run(default_tag: "test") do
+        d.feed(event_time, record)
+      end
+      line = d.logs.first
+      message = line[/(\[info\]: \{.+\})/, 1]
+      assert_equal(%q([info]: {"message":"","result":"success","id":1234}), message)
+    end
+
+    test "http error" do
+      d = create_driver(CONF)
+      record = { message: "This is test message" }
+      headers = {
+        "Connection" => "Keep-Alive",
+        "Accept" => "*/*",
+        "Accept-Encoding" => "gzip;q=1.0,deflate;q=0.6,identity;q=0.3",
+        "Content-Type" => "application/x-www-form-urlencoded",
+        "User-Agent" => "Ruby"
+      }
+      stub_request(:post, "https://zulip.example.com/api/v1/messages")
+        .with(basic_auth: ["example-bot@example.com", "very-secret-value"],
+              headers: headers,
+              body: "type=stream;content;to=social;subject")
+        .to_return(status: 500,
+                   headers: {},
+                   body: { message: "", result: "failure" }.to_json)
+      d.run(default_tag: "test") do
+        d.feed(event_time, record)
+      end
+      line = d.logs.first
+      message = line[/(\[error\]:  status=.+ body=.+)/, 1]
+      assert_equal(%q([error]:  status="500" body="{\\"message\\":\\"\\",\\"result\\":\\"failure\\"}"), message)
+    end
+  end
 end

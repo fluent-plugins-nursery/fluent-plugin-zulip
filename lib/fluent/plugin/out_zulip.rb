@@ -71,6 +71,14 @@ module Fluent
         es.each do |time, record|
           request = build_request(tag, time, record)
           response = http.request(request)
+          case response
+          when Net::HTTPSuccess
+            log.info(response.body)
+          when Net::HTTPServerError, Net::HTTPClientError
+            log.error(status: response.code, body: response.body)
+          else
+            log.warn(status: response.code, body: response.body)
+          end
           log.debug(response)
         end
         http.finish
