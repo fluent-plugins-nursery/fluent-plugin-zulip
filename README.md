@@ -30,6 +30,21 @@ $ bundle
 
 * See also: Fluent::Plugin::Output
 
+```aconf
+<source>
+  @type dummy
+  dummy { "message": "This is a message" }
+  tag dummy.log
+</source>
+
+<match **>
+  @type zulip
+  api_endpoint https://zulip.example.com/api/v1/messages
+  bot_email_address test-bot@example.com
+  bot_api_key xxxxxxxxxxxxxxxxxxxxxxxxxx
+</match>
+```
+
 ## Fluent::Plugin::ZulipOutput
 
 * **api_endpoint** (string) (required): API endpoint
