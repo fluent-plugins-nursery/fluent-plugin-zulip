@@ -4,6 +4,15 @@
 
 [Zulip](https://zulip.org/) is a powerful open source group chat.
 
+## Requirements
+
+| fluent-plugin-zulip | fluentd    | ruby   |
+|---------------------+------------+--------|
+| >= 0.1.0            | >= v0.14.0 | >= 2.1 |
+| N/A                 | >= v0.12.0 | >= 1.9 |
+
+NOTE: fluent-plugin-zulip doesn't support Fluentd v0.12.x
+
 ## Installation
 
 ### RubyGems
