@@ -14,7 +14,7 @@
 
 require "fluent/plugin/output"
 require "json"
-require "net/http"
+require "zulip/client"
 
 module Fluent
   module Plugin
@@ -25,7 +25,7 @@ module Fluent
       ZULIP_CONTENT_MAX_SIZE = 10000
 
       desc "API endpoint"
-      config_param :api_endpoint, :string
+      config_param :site, :string
       desc "Bot email address"
       config_param :bot_email_address, :string
       desc "Bot API key"
@@ -61,46 +61,38 @@ module Fluent
           raise Fluent::ConfigError, "subject max length is #{ZULIP_SUBJECT_MAX_SIZE}"
         end
 
-        @api_endpoint_uri = URI.parse(@api_endpoint)
+        @client = Zulip::Client.new(site: @site,
+                                    username: @bot_email_address,
+                                    api_key: @bot_api_key)
       end
 
       def process(tag, es)
-        http = Net::HTTP.new(@api_endpoint_uri.host, @api_endpoint_uri.port)
-        http.use_ssl = @api_endpoint_uri.scheme == "https"
-        http.start
         es.each do |time, record|
-          request = build_request(tag, time, record)
-          response = http.request(request)
-          case response
-          when Net::HTTPSuccess
+          response = send_message(tag, time, record)
+          if response.success?
             log.info(response.body)
-          when Net::HTTPServerError, Net::HTTPClientError
-            log.error(status: response.code, body: response.body)
           else
-            log.warn(status: response.code, body: response.body)
+            log.error(status: response.status,
+                      message: response.reason_phrase,
+                      body: response.body)
           end
           log.debug(response)
         end
-        http.finish
       end
 
-      def build_request(tag, time, record)
-        request = Net::HTTP::Post.new(@api_endpoint_uri.path)
-        request.basic_auth(@bot_email_address, @bot_api_key)
-        request["Connection"] = "Keep-Alive"
-        params = {
-          "type" => @message_type,
-          "content" => record[@content_key]
-        }
+      def send_message(tag, time, record)
         case @message_type
-        when :private
-          params["to"] = JSON.generate(@recipients)
         when :stream
-          params["to"] = @stream_name
-          params["subject"] = @subject || record[@subject_key]
+          to = @stream_name
+          subject = @subject || record[@subject_key]
+          @client.send_public_message(to: to,
+                                      subject: subject,
+                                      content: record[@content_key])
+        when :private
+          to = @recipients
+          @client.send_private_message(to: to,
+                                       content: record[@content_key])
         end
-        request.set_form_data(params, ";")
-        request
       end
     end
   end
