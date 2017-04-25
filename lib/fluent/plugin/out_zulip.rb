@@ -43,6 +43,10 @@ module Fluent
       desc "Content from record"
       config_param :content_key, :string, default: "message"
 
+      def multi_workers_ready?
+        true
+      end
+
       def configure(conf)
         super
 
