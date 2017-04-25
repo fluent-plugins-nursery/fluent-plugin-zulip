@@ -24,7 +24,7 @@ module Fluent
       ZULIP_SUBJECT_MAX_SIZE = 60
       ZULIP_CONTENT_MAX_SIZE = 10000
 
-      desc "API endpoint"
+      desc "Site URI. ex: https://zulip.exmaple.com/"
       config_param :site, :string
       desc "Bot email address"
       config_param :bot_email_address, :string
