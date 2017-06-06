@@ -42,6 +42,7 @@ module Fluent
       config_param :subject_key, :string, default: nil
       desc "Content from record"
       config_param :content_key, :string, default: "message"
+      config_param :verify_ssl, :bool, default: true
 
       def multi_workers_ready?
         true
@@ -67,7 +68,8 @@ module Fluent
 
         @client = Zulip::Client.new(site: @site,
                                     username: @bot_email_address,
-                                    api_key: @bot_api_key)
+                                    api_key: @bot_api_key,
+                                    ssl: { verify: @verify_ssl })
       end
 
       def process(tag, es)
