@@ -44,6 +44,10 @@ module Fluent
       config_param :content_key, :string, default: "message"
       config_param :verify_ssl, :bool, default: true
 
+      config_section :buffer do
+        config_set_default :chunk_keys, ["tag"]
+      end
+
       def multi_workers_ready?
         true
       end
@@ -74,15 +78,48 @@ module Fluent
 
       def process(tag, es)
         es.each do |time, record|
-          response = send_message(tag, time, record)
-          if response.success?
-            log.info(response.body)
-          else
-            log.error(status: response.status,
-                      message: response.reason_phrase,
-                      body: response.body)
+          loop do
+            response = send_message(tag, time, record)
+            case
+            when response.success?
+              log.trace(response.body)
+            when response.status == 429
+              interval = response.headers["X-RateLimit-Reset"].to_i - Time.now.to_i
+              log.info("Sleeping: #{interval} sec")
+              sleep(interval)
+              next
+            else
+              log.error(status: response.status,
+                        message: response.reason_phrase,
+                        body: response.body)
+            end
+            log.debug(response)
+            break
           end
-          log.debug(response)
+        end
+      end
+
+      def write(chunk)
+        tag = chunk.metadata.tag
+        chunk.each do |time, record|
+          loop do
+            response = send_message(tag, time, record)
+            case
+            when response.success?
+              log.trace(response.body)
+            when response.status == 429
+              interval = response.headers["X-RateLimit-Reset"].to_i - Time.now.to_i
+              log.info("Sleeping: #{interval} sec")
+              sleep(interval)
+              next
+            else
+              log.error(status: response.status,
+                        message: response.reason_phrase,
+                        body: response.body)
+            end
+            log.debug(response)
+            break
+          end
         end
       end
 
