@@ -56,7 +56,7 @@ $ bundle
 
 ## Fluent::Plugin::ZulipOutput
 
-* **api_endpoint** (string) (required): API endpoint
+* **site** (string) (required): Site URI
 * **bot_email_address** (string) (required): Bot email address
 * **bot_api_key** (string) (required): Bot API key
 * **message_type** (enum) (optional): Send message type
