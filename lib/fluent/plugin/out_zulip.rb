@@ -78,48 +78,35 @@ module Fluent
 
       def process(tag, es)
         es.each do |time, record|
-          loop do
-            response = send_message(tag, time, record)
-            case
-            when response.success?
-              log.trace(response.body)
-            when response.status == 429
-              interval = response.headers["X-RateLimit-Reset"].to_i - Time.now.to_i
-              log.info("Sleeping: #{interval} sec")
-              sleep(interval)
-              next
-            else
-              log.error(status: response.status,
-                        message: response.reason_phrase,
-                        body: response.body)
-            end
-            log.debug(response)
-            break
-          end
+          process_record(tag, time, record)
         end
       end
 
       def write(chunk)
         tag = chunk.metadata.tag
         chunk.each do |time, record|
-          loop do
-            response = send_message(tag, time, record)
-            case
-            when response.success?
-              log.trace(response.body)
-            when response.status == 429
-              interval = response.headers["X-RateLimit-Reset"].to_i - Time.now.to_i
-              log.info("Sleeping: #{interval} sec")
-              sleep(interval)
-              next
-            else
-              log.error(status: response.status,
-                        message: response.reason_phrase,
-                        body: response.body)
-            end
-            log.debug(response)
-            break
+          process_record(tag, time, record)
+        end
+      end
+
+      def process_record(tag, time, record)
+        loop do
+          response = send_message(tag, time, record)
+          case
+          when response.success?
+            log.trace(response.body)
+          when response.status == 429
+            interval = response.headers["X-RateLimit-Reset"].to_i - Time.now.to_i
+            log.info("Sleeping: #{interval} sec")
+            sleep(interval)
+            next
+          else
+            log.error(status: response.status,
+                      message: response.reason_phrase,
+                      body: response.body)
           end
+          log.debug(response)
+          break
         end
       end
 
