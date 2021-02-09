@@ -62,25 +62,33 @@ class ZulipOutputTest < Test::Unit::TestCase
 
   sub_test_case "process" do
     test "simple" do
-      d = create_driver(CONF)
+      TRACE_CONF = config_element("ROOT", "", {
+                              "site" => "https://zulip.example.com/",
+                              "bot_email_address" => "example-bot@example.com",
+                              "bot_api_key" => "very-secret-value",
+                              "@log_level" => "trace"
+                            })
+      d = create_driver(TRACE_CONF)
       record = { message: "This is test message" }
       headers = {
         "Authorization" => "Basic ZXhhbXBsZS1ib3RAZXhhbXBsZS5jb206dmVyeS1zZWNyZXQtdmFsdWU=",
         "Expect" => "",
-        "User-Agent" => "Faraday v0.12.0.1"
+        "User-Agent" => "Faraday v1.3.0",
       }
       stub_request(:post, "https://zulip.example.com/api/v1/messages")
         .with(basic_auth: ["example-bot@example.com", "very-secret-value"],
               headers: headers,
-              body: "content&subject&to=social&type=stream")
+              body: "content=This%20is%20test%20message&subject&to=social&type=stream")
         .to_return(headers: {},
                    body: { message: "", result: "success", id: 1234 }.to_json)
       d.run(default_tag: "test") do
         d.feed(event_time, record)
       end
-      line = d.logs.first
-      message = line[/(\[info\]: \{.+\})/, 1]
-      assert_equal(%q([info]: {"message":"","result":"success","id":1234}), message)
+      line = d.logs.select do |log|
+        log.match?(/\[trace\]: {"message"/)
+      end.first
+      message = line[/(\[trace\]: \{.+\})/, 1]
+      assert_equal(%q([trace]: {"message":"","result":"success","id":1234}), message)
     end
 
     test "http error" do
@@ -89,12 +97,12 @@ class ZulipOutputTest < Test::Unit::TestCase
       headers = {
         "Authorization" => "Basic ZXhhbXBsZS1ib3RAZXhhbXBsZS5jb206dmVyeS1zZWNyZXQtdmFsdWU=",
         "Expect" => "",
-        "User-Agent" => "Faraday v0.12.0.1"
+        "User-Agent" => "Faraday v1.3.0",
       }
       stub_request(:post, "https://zulip.example.com/api/v1/messages")
         .with(basic_auth: ["example-bot@example.com", "very-secret-value"],
               headers: headers,
-              body: "content&subject&to=social&type=stream")
+              body: "content=This%20is%20test%20message&subject&to=social&type=stream")
         .to_return(status: 500,
                    headers: {},
                    body: { message: "", result: "failure" }.to_json)
@@ -102,7 +110,6 @@ class ZulipOutputTest < Test::Unit::TestCase
         d.feed(event_time, record)
       end
       line = d.logs.first
-      puts line
       message = line[/(\[error\]:  status=.+ body=.+)/, 1]
       assert_equal(%q([error]:  status=500 message=nil body="{\\"message\\":\\"\\",\\"result\\":\\"failure\\"}"), message)
     end
