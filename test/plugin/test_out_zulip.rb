@@ -109,7 +109,7 @@ class ZulipOutputTest < Test::Unit::TestCase
       end
       line = d.logs.first
       message = line[/(\[error\]:  status=.+ body=.+)/, 1]
-      assert_equal(%q([error]:  status=500 message=nil body="{\\"message\\":\\"\\",\\"result\\":\\"failure\\"}"), message)
+      assert_equal(%q([error]:  status=500 message="" body="{\\"message\\":\\"\\",\\"result\\":\\"failure\\"}"), message)
     end
   end
 end
