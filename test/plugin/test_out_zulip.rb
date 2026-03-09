@@ -73,7 +73,6 @@ class ZulipOutputTest < Test::Unit::TestCase
       headers = {
         "Authorization" => "Basic ZXhhbXBsZS1ib3RAZXhhbXBsZS5jb206dmVyeS1zZWNyZXQtdmFsdWU=",
         "Expect" => "",
-        "User-Agent" => "Faraday v1.10.5",
       }
       stub_request(:post, "https://zulip.example.com/api/v1/messages")
         .with(basic_auth: ["example-bot@example.com", "very-secret-value"],
@@ -97,7 +96,6 @@ class ZulipOutputTest < Test::Unit::TestCase
       headers = {
         "Authorization" => "Basic ZXhhbXBsZS1ib3RAZXhhbXBsZS5jb206dmVyeS1zZWNyZXQtdmFsdWU=",
         "Expect" => "",
-        "User-Agent" => "Faraday v1.10.5",
       }
       stub_request(:post, "https://zulip.example.com/api/v1/messages")
         .with(basic_auth: ["example-bot@example.com", "very-secret-value"],
