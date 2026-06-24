@@ -48,7 +48,7 @@ $ bundle
 
 <match **>
   @type zulip
-  api_endpoint https://zulip.example.com/api/v1/messages
+  site https://zulip.example.com
   bot_email_address test-bot@example.com
   bot_api_key xxxxxxxxxxxxxxxxxxxxxxxxxx
 </match>
